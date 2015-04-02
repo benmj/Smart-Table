@@ -14,6 +14,7 @@ ng.module('smart-table')
         start: 0
       }
     };
+    var customFilters = {};
     var filtered;
     var pipeAfterSafeCopy = true;
     var ctrl = this;
@@ -90,12 +91,39 @@ ng.module('smart-table')
     };
 
     /**
+     * Set a custom filter for the given property. Both `prop` and `input` will be passed to the custom filter.
+     * @param {value} input - input string
+     * @param {string} prop - property name.
+     * @param {string} filterName - the name of a filter registered with $filter
+     */
+    this.customSearch = function customSearch (input, prop, filterName) {
+      if (!input) {
+        delete customFilters[prop];
+      } else {
+        customFilters[prop] = {
+          input: input,
+          filter: filterName
+        };
+      }
+      this.pipe();
+    };
+
+    /**
      * this will chain the operations of sorting and filtering based on the current table state (sort options, filtering, ect)
      */
     this.pipe = function pipe () {
       var pagination = tableState.pagination;
       var output;
       filtered = tableState.search.predicateObject ? filter(safeCopy, tableState.search.predicateObject) : safeCopy;
+
+      // Apply all custom filters
+      if (Object.keys(customFilters).length > 0) {
+        filtered = Object.keys(customFilters).reduce(function (collection, predicate) {
+          var filterObj = customFilters[predicate];
+          return $filter(filterObj.filter)(collection, predicate, filterObj.input);
+        }, filtered);
+      }
+
       if (tableState.sort.predicate) {
         filtered = orderBy(filtered, tableState.sort.predicate, tableState.sort.reverse);
       }

@@ -5,7 +5,32 @@ describe('st table Controller', function () {
   var ctrl;
   var childScope;
 
-  beforeEach(module('smart-table'));
+  beforeEach(module('smart-table', function ($filterProvider) {
+    // contrived filter to be used by customSearch
+    $filterProvider.register('greaterThan', function () {
+      return function (collection, property, greaterThan) {
+        if (collection && property && greaterThan) {
+          return collection.filter(function (row) {
+            return parseInt(row[property]) > parseInt(greaterThan);
+          });
+        }
+        return collection;
+      }
+    });
+
+    // contrived filter to be used by customSearch
+    $filterProvider.register('fullName', function () {
+      return function (collection, property, fullName) {
+        // in this example, "property" is ignored because we make a computed "full name" value
+        if (collection && property && fullName) {
+          return collection.filter(function (row) {
+            return row.firstname.concat(row.name).toLowerCase().replace(' ', '').indexOf(fullName.toLowerCase().replace(' ', '')) > -1;
+          });
+        }
+        return collection;
+      };
+    });
+  }));
 
   describe('with a simple data-set', function () {
 
@@ -167,6 +192,33 @@ describe('st table Controller', function () {
           {name: 'Renard', firstname: 'Laurent', age: 66},
           {name: 'Renard', firstname: 'Olivier', age: 33},
           {name: 'Faivre', firstname: 'Blandine', age: 44}
+        ]);
+      });
+    });
+
+    describe('custom search', function ()  {
+      it('should apply custom search filters', function () {
+        ctrl.customSearch('50', 'age', 'greaterThan');
+        expect(scope.data).toEqual([
+          {name: 'Renard', firstname: 'Laurent', age: 66},
+          {name: 'Francoise', firstname: 'Frere', age: 99}
+        ]);
+      });
+
+      it('should apply multiple filters', function () {
+        ctrl.customSearch('50', 'age', 'greaterThan');
+        ctrl.customSearch('Laurent Ren', 'fullName', 'fullName');
+        expect(scope.data).toEqual([
+          {name: 'Renard', firstname: 'Laurent', age: 66}
+        ]);
+      });
+
+      it('should not apply custom filters when the input is an empty string', function () {
+        ctrl.customSearch('50', 'age', 'greaterThan');
+        ctrl.customSearch('', 'fullName', 'fullName');
+        expect(scope.data).toEqual([
+          {name: 'Renard', firstname: 'Laurent', age: 66},
+          {name: 'Francoise', firstname: 'Frere', age: 99}
         ]);
       });
     });

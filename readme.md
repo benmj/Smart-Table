@@ -7,6 +7,14 @@ Smart table is a table module for angular js. It allows you to quickly compose y
 It is lightweight (around 3kb minified) and has no other dependencies than Angular itself.
 Check the [documentation](http://lorenzofox3.github.io/smart-table-website/) website for more details
 
+## Differences in this fork
+
+This fork [http://github.com/benmj/Smart-Table](http://github.com/benmj/Smart-Table) includes the following:
+
+    * a new method on the smart table controller called "custom search" that allows passing in the name of a filter (registered with $filter) to be run against the data set
+    * a new directive st-custom-search, which makes use of the new controller method
+    * test coverage for the new features
+
 ## submitting an issue
 
 Please be responsible, the open source community is not there to guess your problem or to do your job. When submitting an issue try as much as possible to:
